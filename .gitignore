@@ -1,0 +1,8 @@
+# 忽略构建产物与缓存
+.build/
+*.app
+.DS_Store
+
+# 编译器 module cache（若误建在项目内）
+modcache/
+*.swiftmodule
