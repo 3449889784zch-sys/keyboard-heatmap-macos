@@ -10,6 +10,7 @@ BIN_NAME="KeyStats"
 BUNDLE_ID="com.allen.keystats"
 APP="${APP_NAME}.app"
 BUILD=".build"
+PKG="${APP_NAME}-安装包.pkg"
 SIGNING_IDENTITY="KeyStats Local Dev"
 SIGNING_DIR="$BUILD/local-signing"
 SIGNING_PASSWORD="keystats-local-dev"
@@ -98,6 +99,18 @@ fi
 echo "▶ 使用稳定本机签名：$SIGNING_IDENTITY"
 codesign --force --sign "$SIGNING_IDENTITY" --identifier "$BUNDLE_ID" "$APP"
 codesign --verify --verbose "$APP" || true
+
+if [ "${1:-}" = "--pkg" ]; then
+  echo "▶ 制作安装包 ..."
+  rm -f "$PKG"
+  pkgbuild \
+    --identifier "${BUNDLE_ID}.installer" \
+    --version "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$APP/Contents/Info.plist")" \
+    --install-location /Applications \
+    --component "$APP" \
+    "$PKG"
+  echo "✅ 安装包完成：$PWD/$PKG"
+fi
 
 echo ""
 echo "✅ 构建完成：$PWD/$APP"

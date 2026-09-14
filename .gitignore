@@ -1,6 +1,7 @@
 # 忽略构建产物与缓存
 .build/
 *.app
+*.pkg
 .DS_Store
 
 # 编译器 module cache（若误建在项目内）
