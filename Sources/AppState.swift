@@ -2,6 +2,7 @@ import Foundation
 import SwiftUI
 import AppKit
 import Combine
+import ServiceManagement
 
 // MARK: - 应用状态 / 数据核心
 //
@@ -22,6 +23,8 @@ final class AppState: ObservableObject {
     @Published var needsRestart: Bool = false     // 已授权但 tap 仍创建失败 → 提示重启
     @Published var confirmingReset: Bool = false  // 「重置」二次确认弹窗开关（纯界面状态，不持久化）
     @Published var showDockChoice: Bool
+    @Published private(set) var launchAtLoginEnabled = false
+    @Published var launchAtLoginError: String?
     @Published var isPaused: Bool = false {
         didSet { UserDefaults.standard.set(isPaused, forKey: "isPaused") }
     }
@@ -63,6 +66,7 @@ final class AppState: ObservableObject {
         self.isPaused = UserDefaults.standard.bool(forKey: "isPaused")
         self.showDockChoice = UserDefaults.standard.object(forKey: "showInDock") == nil
         load()
+        refreshLaunchAtLoginStatus()
 
         // 默认只作为菜单栏应用运行；首次打开时由界面询问是否保留 Dock 图标。
         let showInDock = UserDefaults.standard.bool(forKey: dockVisibilityKey)
@@ -169,6 +173,28 @@ final class AppState: ObservableObject {
 
     private func applyDockPolicy(showInDock: Bool) {
         NSApp.setActivationPolicy(showInDock ? .regular : .accessory)
+    }
+
+    // MARK: 开机自启动
+
+    /// 使用 macOS 的登录项服务注册当前 app。系统也可在「通用 > 登录项」中管理它。
+    func setLaunchAtLogin(_ enabled: Bool) {
+        let service = SMAppService.mainApp
+        do {
+            if enabled {
+                try service.register()
+            } else {
+                try service.unregister()
+            }
+            refreshLaunchAtLoginStatus()
+        } catch {
+            refreshLaunchAtLoginStatus()
+            launchAtLoginError = "无法更新开机自启动设置：\(error.localizedDescription)"
+        }
+    }
+
+    private func refreshLaunchAtLoginStatus() {
+        launchAtLoginEnabled = SMAppService.mainApp.status == .enabled
     }
 
     private func activateMonitor() {

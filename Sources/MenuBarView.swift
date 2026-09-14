@@ -69,6 +69,12 @@ struct MenuBarView: View {
             }
             .buttonStyle(.plain)
 
+            Toggle("开机时自动启动", isOn: Binding(
+                get: { state.launchAtLoginEnabled },
+                set: { state.setLaunchAtLogin($0) }
+            ))
+            .toggleStyle(.checkbox)
+
             Button {
                 state.toggleDockVisibility()
             } label: {

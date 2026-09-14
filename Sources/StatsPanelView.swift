@@ -28,6 +28,21 @@ struct StatsPanelView: View {
 
             Divider()
 
+            VStack(alignment: .leading, spacing: 6) {
+                Text("运行设置")
+                    .font(.subheadline).foregroundStyle(.secondary)
+                Toggle("开机时自动启动", isOn: Binding(
+                    get: { state.launchAtLoginEnabled },
+                    set: { state.setLaunchAtLogin($0) }
+                ))
+                .toggleStyle(.switch)
+                .font(.callout)
+                Text("也可在系统设置 › 通用 › 登录项中管理。")
+                    .font(.caption).foregroundStyle(.secondary)
+            }
+
+            Divider()
+
             // Top 键排行
             VStack(alignment: .leading, spacing: 8) {
                 Text("最常敲的键")
@@ -50,6 +65,14 @@ struct StatsPanelView: View {
         }
         .padding(20)
         .frame(minWidth: 240)
+        .alert("无法设置开机自启动", isPresented: Binding(
+            get: { state.launchAtLoginError != nil },
+            set: { if !$0 { state.launchAtLoginError = nil } }
+        )) {
+            Button("好", role: .cancel) { state.launchAtLoginError = nil }
+        } message: {
+            Text(state.launchAtLoginError ?? "")
+        }
     }
 }
 
